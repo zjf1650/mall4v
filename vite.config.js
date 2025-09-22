@@ -1,91 +1,100 @@
-import { defineConfig, loadEnv } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
-import viteCompression from 'vite-plugin-compression'
+import { defineConfig, loadEnv } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
+import viteCompression from "vite-plugin-compression";
 
 // eslint
-import eslintPlugin from 'vite-plugin-eslint'
+import eslintPlugin from "vite-plugin-eslint";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command })=> {
+export default defineConfig(({ command, mode }) => {
+  // ✅ 关键：加载对应 mode 的环境变量
+  const env = loadEnv(mode, process.cwd());
   return {
+    base: env.VITE_APP_BASE_URL || "./", // ✅✅✅ 放在这里！根级！
+
     plugins: [
       vue(),
       createSvgIconsPlugin({
-        iconDirs: [path.resolve(process.cwd(), 'src/icons/svg')],
-        symbolId: 'icon-[dir]-[name]'
+        iconDirs: [path.resolve(process.cwd(), "src/icons/svg")],
+        symbolId: "icon-[dir]-[name]",
       }),
       // 自动引入内容
       AutoImport({
-        imports: [
-          'vue',
-          'vue-router'
-        ],
-        dirs: [
-          'src/hooks/**',
-          'src/stores/**',
-          'src/utils/**'
-        ],
-        resolvers: command === 'build' ? [ElementPlusResolver()] : [],
-        dts: 'src/auto-import/imports.d.ts',
+        imports: ["vue", "vue-router"],
+        dirs: ["src/hooks/**", "src/stores/**", "src/utils/**"],
+        resolvers: command === "build" ? [ElementPlusResolver()] : [],
+        dts: "src/auto-import/imports.d.ts",
         eslintrc: {
-          enabled: false
-        }
+          enabled: false,
+        },
       }),
       // 自动引入组件
       Components({
-        dirs: [
-          'src/components'
-        ],
-        resolvers: command === 'build' ? [ElementPlusResolver()] : [],
-        dts: 'src/auto-import/components.d.ts'
+        dirs: ["src/components"],
+        resolvers: command === "build" ? [ElementPlusResolver()] : [],
+        dts: "src/auto-import/components.d.ts",
       }),
       // 对大于 1k 的文件进行压缩
       viteCompression({
         threshold: 1000,
-      })
+      }),
     ].concat(
       // eslint
-      command !== 'build' ? [eslintPlugin({ include: ['src/**/*.js', 'src/**/*.vue', 'src/*.js', 'src/*.vue'] })] : []
+      command !== "build"
+        ? [
+            eslintPlugin({
+              include: ["src/**/*.js", "src/**/*.vue", "src/*.js", "src/*.vue"],
+            }),
+          ]
+        : []
     ),
     server: {
       host: true,
       port: 9527,
-      open: true
+      open: true,
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, 'src'),
-        'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js'
-      }
+        "@": path.resolve(__dirname, "src"),
+        "vue-i18n": "vue-i18n/dist/vue-i18n.cjs.js",
+      },
     },
     build: {
-      base: './',
+      // base: env.VITE_APP_BASE_URL || "./", // ❌ 错误位置
       rollupOptions: {
         // 静态资源分类打包
         output: {
-          chunkFileNames: 'static/js/[name]-[hash].js',
-          entryFileNames: 'static/js/[name]-[hash].js',
-          assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+          chunkFileNames: "static/js/[name]-[hash].js",
+          entryFileNames: "static/js/[name]-[hash].js",
+          assetFileNames: "static/[ext]/[name]-[hash].[ext]",
           // 静态资源分拆打包
-          manualChunks (id) {
-            if (id.includes('node_modules')) {
-              if (id.toString().indexOf('.pnpm/') !== -1) {
-                return id.toString().split('.pnpm/')[1].split('/')[0].toString();
-              } else if (id.toString().indexOf('node_modules/') !== -1) {
-                return id.toString().split('node_modules/')[1].split('/')[0].toString();
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              if (id.toString().indexOf(".pnpm/") !== -1) {
+                return id
+                  .toString()
+                  .split(".pnpm/")[1]
+                  .split("/")[0]
+                  .toString();
+              } else if (id.toString().indexOf("node_modules/") !== -1) {
+                return id
+                  .toString()
+                  .split("node_modules/")[1]
+                  .split("/")[0]
+                  .toString();
               }
             }
-          }
-        }
+          },
+        },
       },
       sourcemap: false,
-      target: 'es2015',
-      reportCompressedSize: false
-    }
-  }
-})
+      target: "es2015",
+      reportCompressedSize: false,
+    },
+  };
+});

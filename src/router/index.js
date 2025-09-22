@@ -49,8 +49,12 @@ export const mainRoutes = {
   }
 }
 
+// ✅【关键】获取部署子路径（如 /admin/），用于 Vue Router 正确跳转
+const base = import.meta.env.VITE_APP_BASE_URL || '/'
+
 const router = createRouter({
-  history: createWebHistory(),
+  // ✅ 让所有路由跳转自动带上 /admin 前缀
+  history: createWebHistory(base),
   scrollBehavior: () => ({ top: 0 }),
   isAddDynamicMenuRoutes: false, // 是否已经添加动态(菜单)路由
   routes: globalRoutes.concat(mainRoutes)
