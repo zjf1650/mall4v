@@ -3,24 +3,36 @@
     <el-form
       :inline="true"
       :model="dataForm"
-      @keyup.enter="getDataList(page)"
+      @keyup.enter="handleSearch()"
     >
-      <el-form-item label="退款单号:">
+      <el-form-item
+        label="退款单号:"
+        prop="refundSn"
+      >
         <el-input
+          id="refundSn"
           v-model="dataForm.refundSn"
           placeholder="退款单号"
           clearable
         />
       </el-form-item>
-      <el-form-item label="订单编号:">
+      <el-form-item
+        label="订单编号:"
+        prop="orderNumber"
+      >
         <el-input
+          id="orderNumber"
           v-model="dataForm.orderNumber"
           placeholder="订单编号"
           clearable
         />
       </el-form-item>
-      <el-form-item label="申请时间:">
+      <el-form-item
+        label="申请时间:"
+        prop="applyTime"
+      >
         <el-date-picker
+          id="applyTime"
           v-model="dateRange"
           type="datetimerange"
           range-separator="至"
@@ -29,22 +41,35 @@
           end-placeholder="结束日期"
         />
       </el-form-item>
-      <el-form-item label="退款状态:">
+      <el-form-item
+        label="退款状态:"
+        prop="status"
+      >
         <el-select
+          id="status"
           v-model="dataForm.status"
           clearable
           placeholder="请选择退款状态"
         >
-          <el-option label="待审核" value="1" />
-          <el-option label="已同意" value="2" />
-          <el-option label="已拒绝" value="3" />
+          <el-option
+            label="待审核"
+            :value="1"
+          />
+          <el-option
+            label="已同意"
+            :value="2"
+          />
+          <el-option
+            label="已拒绝"
+            :value="3"
+          />
         </el-select>
       </el-form-item>
       <el-form-item>
         <el-button
           type="primary"
           icon="el-icon-search"
-          @click="getDataList()"
+          @click="handleSearch()"
         >
           查询
         </el-button>
@@ -144,26 +169,68 @@
 
     <!-- 退款详情弹窗 -->
     <el-dialog
-      title="退款详情"
       v-model="detailVisible"
+      title="退款详情"
       width="60%"
     >
       <div v-if="refundDetail">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="退款单号">{{ refundDetail.refundSn }}</el-descriptions-item>
-          <el-descriptions-item label="订单编号">{{ refundDetail.orderNumber }}</el-descriptions-item>
-          <el-descriptions-item label="申请类型">{{ refundDetail.applyType === 1 ? '仅退款' : '退货退款' }}</el-descriptions-item>
-          <el-descriptions-item label="退款金额">￥{{ refundDetail.refundAmount }}</el-descriptions-item>
-          <el-descriptions-item label="申请时间">{{ formatTime(refundDetail.applyTime) }}</el-descriptions-item>
-          <el-descriptions-item label="处理时间">{{ formatTime(refundDetail.handelTime) }}</el-descriptions-item>
-          <el-descriptions-item label="退款状态">
-            <el-tag :type="getStatusType(refundDetail)">{{ getStatusText(refundDetail) }}</el-tag>
+        <el-descriptions
+          :column="2"
+          border
+        >
+          <el-descriptions-item label="退款单号">
+            {{ refundDetail.refundSn }}
           </el-descriptions-item>
-          <el-descriptions-item label="退款原因" :span="2">{{ refundDetail.buyerMsg || '无' }}</el-descriptions-item>
-          <el-descriptions-item label="商家回复" :span="2">{{ refundDetail.sellerMsg || '无' }}</el-descriptions-item>
+          <el-descriptions-item label="订单编号">
+            {{ refundDetail.orderNumber }}
+          </el-descriptions-item>
+          <el-descriptions-item label="申请类型">
+            {{ refundDetail.applyType === 1 ? '仅退款' : '退货退款' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="退款金额">
+            ￥{{ refundDetail.refundAmount }}
+          </el-descriptions-item>
+          <el-descriptions-item label="申请时间">
+            {{ formatTime(refundDetail.applyTime) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="处理时间">
+            {{ formatTime(refundDetail.handelTime) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="退款状态">
+            <el-tag :type="getStatusType(refundDetail)">
+              {{ getStatusText(refundDetail) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="refundDetail.expressName"
+            label="物流公司"
+          >
+            {{ refundDetail.expressName }}
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="refundDetail.expressNo"
+            label="物流单号"
+          >
+            {{ refundDetail.expressNo }}
+          </el-descriptions-item>
+          <el-descriptions-item
+            label="退款原因"
+            :span="2"
+          >
+            {{ refundDetail.buyerMsg || '无' }}
+          </el-descriptions-item>
+          <el-descriptions-item
+            label="商家回复"
+            :span="2"
+          >
+            {{ refundDetail.sellerMsg || '无' }}
+          </el-descriptions-item>
         </el-descriptions>
 
-        <div v-if="refundDetail.photoFiles" style="margin-top: 20px;">
+        <div
+          v-if="refundDetail.photoFiles"
+          style="margin-top: 20px;"
+        >
           <h4>凭证图片</h4>
           <el-image
             v-for="(img, index) in refundDetail.photoFiles.split(',')"
@@ -178,21 +245,31 @@
 
     <!-- 审核弹窗 -->
     <el-dialog
-      title="审核退款"
       v-model="auditVisible"
+      title="审核退款"
       width="40%"
     >
-      <el-form :model="auditForm" label-width="100px">
-        <el-form-item label="审核结果" required>
+      <el-form
+        :model="auditForm"
+        label-width="100px"
+      >
+        <el-form-item
+          label="审核结果"
+          required
+        >
           <el-radio-group v-model="auditForm.auditResult">
-            <el-radio :label="2">同意退款</el-radio>
-            <el-radio :label="3">拒绝退款</el-radio>
+            <el-radio :label="2">
+              同意退款
+            </el-radio>
+            <el-radio :label="3">
+              拒绝退款
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注">
           <el-input
-            type="textarea"
             v-model="auditForm.sellerMsg"
+            type="textarea"
             placeholder="请输入审核备注"
             :rows="3"
             maxlength="200"
@@ -203,7 +280,12 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="auditVisible = false">取 消</el-button>
-          <el-button type="primary" @click="submitAudit">确 定</el-button>
+          <el-button
+            type="primary"
+            @click="submitAudit"
+          >
+            确 定
+          </el-button>
         </span>
       </template>
     </el-dialog>
@@ -212,14 +294,15 @@
 
 <script>
 import { isAuth } from '@/utils'
+import http from '@/utils/http'
 
 export default {
-  data() {
+  data () {
     return {
       dataForm: {
         refundSn: '',
         orderNumber: '',
-        status: ''
+        status: null
       },
       dateRange: [],
       dataList: [],
@@ -236,17 +319,31 @@ export default {
       }
     }
   },
-  activated() {
+  activated () {
     this.getDataList()
+  },
+  mounted () {
+    this.handleSearch()
   },
   methods: {
     isAuth,
     // 获取数据列表
-    getDataList() {
+    getDataList () {
       const params = {
         current: this.page,
-        size: this.limit,
-        ...this.dataForm
+        size: this.limit
+      }
+
+      if (this.dataForm.status !== null && this.dataForm.status !== undefined && this.dataForm.status !== '') {
+        params.status = this.dataForm.status
+      }
+
+      if (this.dataForm.refundSn && this.dataForm.refundSn.trim()) {
+        params.refundSn = this.dataForm.refundSn.trim()
+      }
+
+      if (this.dataForm.orderNumber && this.dataForm.orderNumber.trim()) {
+        params.orderNumber = this.dataForm.orderNumber.trim()
       }
 
       if (this.dateRange && this.dateRange.length === 2) {
@@ -254,57 +351,62 @@ export default {
         params.endTime = this.dateRange[1]
       }
 
-      this.$http({
-        url: this.$http.adornUrl('/admin/refund/list'),
+      http({
+        url: http.adornUrl('/admin/refund/list'),
         method: 'get',
-        params: this.$http.adornParams(params)
-      }).then(({ data }) => {
-        if (data && data.code === 0) {
-          this.dataList = data.data.records
-          this.total = data.data.total
+        params: http.adornParams(params)
+      }).then((res) => {
+        if (res && res.code === '00000') {
+          this.dataList = res.data.records
+          this.total = res.data.total
         } else {
           this.dataList = []
           this.total = 0
         }
       })
     },
+    handleSearch () {
+      this.page = 1
+      this.getDataList()
+    },
     // 每页数
-    sizeChangeHandle(val) {
+    sizeChangeHandle (val) {
       this.limit = val
       this.page = 1
       this.getDataList()
     },
     // 当前页
-    currentChangeHandle(val) {
+    currentChangeHandle (val) {
       this.page = val
       this.getDataList()
     },
     // 清空搜索条件
-    clearDatas() {
+    clearDatas () {
       this.dataForm = {
         refundSn: '',
         orderNumber: '',
-        status: ''
+        status: null
       }
       this.dateRange = []
+      this.page = 1
       this.getDataList()
     },
     // 查看详情
-    viewDetail(refundId) {
-      this.$http({
-        url: this.$http.adornUrl(`/admin/refund/detail/${refundId}`),
+    viewDetail (refundId) {
+      http({
+        url: http.adornUrl(`/admin/refund/detail/${refundId}`),
         method: 'get'
-      }).then(({ data }) => {
-        if (data && data.code === 0) {
-          this.refundDetail = data.data
+      }).then((res) => {
+        if (res && res.code === '00000') {
+          this.refundDetail = res.data
           this.detailVisible = true
         } else {
-          this.$message.error(data.msg || '获取详情失败')
+          this.$message.error(res.msg || '获取详情失败')
         }
       })
     },
     // 审核退款
-    auditRefund(refund) {
+    auditRefund (refund) {
       this.auditForm = {
         refundId: refund.refundId,
         auditResult: 2,
@@ -313,33 +415,33 @@ export default {
       this.auditVisible = true
     },
     // 提交审核
-    submitAudit() {
+    submitAudit () {
       if (!this.auditForm.auditResult) {
         this.$message.error('请选择审核结果')
         return
       }
 
-      this.$http({
-        url: this.$http.adornUrl('/admin/refund/audit'),
+      http({
+        url: http.adornUrl('/admin/refund/audit'),
         method: 'put',
-        data: this.$http.adornData(this.auditForm)
-      }).then(({ data }) => {
-        if (data && data.code === 0) {
+        data: http.adornData(this.auditForm)
+      }).then((res) => {
+        if (res && res.code === '00000') {
           this.$message.success('审核成功')
           this.auditVisible = false
           this.getDataList()
         } else {
-          this.$message.error(data.msg || '审核失败')
+          this.$message.error(res.msg || '审核失败')
         }
       })
     },
     // 格式化时间
-    formatTime(time) {
+    formatTime (time) {
       if (!time) return ''
       return new Date(time).toLocaleString()
     },
     // 获取状态文本
-    getStatusText(refund) {
+    getStatusText (refund) {
       const statusMap = {
         1: '待审核',
         2: '已同意',
@@ -360,7 +462,7 @@ export default {
       return statusText
     },
     // 获取状态类型
-    getStatusType(refund) {
+    getStatusType (refund) {
       if (refund.refundSts === 1) return 'warning'
       if (refund.refundSts === 2) {
         if (refund.returnMoneySts === 1) return 'success'
@@ -374,7 +476,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .mod-refund-refund .tit {
   background: #f5f7fa;
   padding: 10px;

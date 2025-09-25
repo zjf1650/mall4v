@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import cookie from 'vue-cookies'
 import { isURL } from '@/utils/validate'
 import { clearLoginInfo } from '@/utils'
+import http from '@/utils/http'
 import Layout from '@/layout/main.vue'
 import Login from '@/views/common/login/index.vue'
 
@@ -31,6 +32,11 @@ export const mainRoutes = {
       path: 'home',
       name: 'home',
       component: () => import('@/views/common/home/index.vue')
+    },
+    {
+      path: 'refund/refund',
+      name: 'refund-refund',
+      component: () => import('@/views/modules/refund/refund/index.vue')
     },
     {
       path: '/prodInfo',
